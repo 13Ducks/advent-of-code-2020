@@ -1,7 +1,7 @@
-# DAY 1
+from aocd import get_data
 
-file = open("day1/day1.txt")
-data = list(map(lambda x: int(x.strip()), file.readlines()))
+data = get_data(day=1).split("\n")
+data = list(map(lambda x: int(x.strip()), data))
 
 for i in data:
     for j in data:
