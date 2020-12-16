@@ -1,64 +1,49 @@
 from aocd import get_data
 import re
 
-data = get_data(day=16).split("\n\n")
-# data = open("temp.txt").read().split("\n\n")
+data = list(map(lambda x: x.split("\n"), get_data(day=16).split("\n\n")))
 
 rules = []
-tot = 0
-check = lambda v, r: r[0] <= v <= r[1] or r[2] <= v <= r[3]
 near = []
-my = None
+my = [*map(int, data[1][1].split(","))]
+check = lambda v, r: r[0] <= v <= r[1] or r[2] <= v <= r[3]
+p1, p2 = 0, 1
 
-for v in data:
-    s = v.split("\n")
-    if "ticket" in s[0]:
-        if "your ticket" in s[0]:
-            my = s[1]
-        for j in s[1:]:
-            valid = True
-            for k in j.split(","):
-                k = int(k)
-                good = False
-                for r in rules:
-                    if check(k, r):
-                        good = True
-                        break
-                if not good:
-                    tot += k
-                    valid = False
-            if valid:
-                near.append(list(map(int, j.split(","))))
-    else:
-        for j in s:
-            a = re.split(r": | or |-", j)
-            rules.append([*map(int, a[1:])])
+for rule in data[0]:
+    spl = re.split(r": | or |-", rule)
+    rules.append([*map(int, spl[1:])])
 
-print(tot)
-# print(near)
-real = {i: set() for i in range(len(rules))}
+for ticket in data[2][1:]:
+    valid = True
+    ticket = [*map(int, ticket.split(","))]
+    for v in ticket:
+        good = any([check(v, r) for r in rules])
+        if not good:
+            p1 += v
+            valid = False
+    if valid:
+        near.append(ticket)
 
-for idx, r in enumerate(rules):
-    for i in range(len(near[0])):
-        works = True
-        for t in near:
-            if not check(t[i], r):
-                works = False
-                break
+print(p1)
+
+potential = {i: set() for i in range(len(rules))}
+
+for i, r in enumerate(rules):
+    for j in range(len(rules)):
+        works = all(check(t[j], r) for t in near)
         if works:
-            real[idx].add(i)
+            potential[i].add(j)
 
 final = [-1] * len(rules)
-real = sorted(real.items(), key=lambda x: len(x[1]))
+potential = sorted(potential.items(), key=lambda x: len(x[1]))
 seen = set()
-for i in real:
-    g = list(i[1] - seen)[0]
-    seen.add(g)
-    final[i[0]] = g
-print(final)
 
-s = my.split(",")
-tot = 1
+for i in potential:
+    v = (i[1] - seen).pop()
+    seen.add(v)
+    final[i[0]] = v
+
 for i in range(6):
-    tot *= int(s[final[i]])
-print(tot)
+    p2 *= my[final[i]]
+
+print(p2)
